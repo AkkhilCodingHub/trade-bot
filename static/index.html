@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trade Bot Web Interface</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 2rem; }
+        .section { margin-bottom: 2rem; }
+        button { padding: 0.5rem 1rem; }
+        #output { white-space: pre-wrap; background: #f6f8fa; padding: 1rem; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <h1>Trade Bot Web Interface</h1>
+    <div class="section">
+        <h2>Run Backtest</h2>
+        <button onclick="runBacktest()">Run</button>
+    </div>
+    <div class="section">
+        <h2>Fetch News</h2>
+        <button onclick="fetchNews()">Fetch</button>
+        <div id="news"></div>
+    </div>
+    <div class="section">
+        <h2>KiteConnect Login</h2>
+        <button onclick="getKiteLogin()">Get Login URL</button>
+        <div id="kite-login"></div>
+    </div>
+    <div class="section">
+        <h2>Output</h2>
+        <div id="output"></div>
+    </div>
+    <script>
+        async function runBacktest() {
+            const res = await fetch('/api/backtest');
+            document.getElementById('output').innerText = await res.text();
+        }
+        async function fetchNews() {
+            const res = await fetch('/api/news');
+            const news = await res.json();
+            let html = '<ul>';
+            for (const item of news) {
+                html += `<li><b>${item.title}</b></li>`;
+            }
+            html += '</ul>';
+            document.getElementById('news').innerHTML = html;
+        }
+        async function getKiteLogin() {
+            const res = await fetch('/api/kite-login');
+            const data = await res.json();
+            document.getElementById('kite-login').innerHTML = `<a href="${data.login_url}" target="_blank">Login to Kite</a>`;
+        }
+    </script>
+</body>
+</html>
