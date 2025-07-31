@@ -1,0 +1,26 @@
+{
+  "name": "trade-bot",
+  "version": "1.0.0",
+  "description": "Trade bot using go",
+  "homepage": "https://github.com/AkkhilCodingHub/trade-bot#readme",
+  "bugs": {
+    "url": "https://github.com/AkkhilCodingHub/trade-bot/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AkkhilCodingHub/trade-bot.git"
+  },
+  "license": "ISC",
+  "author": "AkkhilCodingHub",
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start:sync": "browser-sync start --server static --files 'static/*.html,static/*.css,static/*.js'",
+    "dev": "concurrently \"go run main.go\" \"browser-sync start --proxy localhost:8080 --files 'static/*.html,static/*.css,static/*.js' --no-open\""
+  },
+  "devDependencies": {
+    "browser-sync": "^3.0.4",
+    "concurrently": "^8.2.2"
+  }
+}

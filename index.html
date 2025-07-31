@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trade Bot Web Interface</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 2rem; }
+        .section { margin-bottom: 2rem; }
+        button { padding: 0.5rem 1rem; }
+        #output { white-space: pre-wrap; background: #f6f8fa; padding: 1rem; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <h1>Trade Bot Web Interface</h1>
+    <div class="section">
+        <h2>Run Backtest</h2>
+        <button onclick="runBacktest()">Run</button>
+    </div>
+    <div class="section">
+        <h2>Fetch News</h2>
+        <select id="news-symbol">
+          <option value="RELIANCE">RELIANCE</option>
+          <option value="TCS">TCS</option>
+          <option value="INFY">INFY</option>
+          <option value="HDFCBANK">HDFCBANK</option>
+          <option value="ICICIBANK">ICICIBANK</option>
+          <option value="HINDUNILVR">HINDUNILVR</option>
+          <option value="SBIN">SBIN</option>
+          <option value="BHARTIARTL">BHARTIARTL</option>
+          <option value="KOTAKBANK">KOTAKBANK</option>
+          <option value="LT">LT</option>
+        </select>
+        <button onclick="fetchNews()">Fetch</button>
+        <div id="news"></div>
+    </div>
+    <div class="section">
+        <h2>Fetch Stock Data</h2>
+        <select id="symbol">
+          <option value="RELIANCE.NSE">RELIANCE</option>
+          <option value="TCS.NSE">TCS</option>
+          <option value="INFY.NSE">INFY</option>
+          <option value="HDFCBANK.NSE">HDFCBANK</option>
+          <option value="ICICIBANK.NSE">ICICIBANK</option>
+          <option value="HINDUNILVR.NSE">HINDUNILVR</option>
+          <option value="SBIN.NSE">SBIN</option>
+          <option value="BHARTIARTL.NSE">BHARTIARTL</option>
+          <option value="KOTAKBANK.NSE">KOTAKBANK</option>
+          <option value="LT.NSE">LT</option>
+        </select> 
+        <button onclick="fetchStock()">Fetch</button>
+        <div id="stock"></div>
+    </div>
+    <div class="section">
+        <h2>Output</h2>
+        <div id="output"></div>
+    </div>
+    <script>
+        async function runBacktest() {
+            const res = await fetch('/api/backtest');
+            document.getElementById('output').innerText = await res.text();
+        }
+        async function fetchNews() {
+            const newsDiv = document.getElementById('news');
+            const symbol = document.getElementById('news-symbol').value;
+            newsDiv.innerHTML = '<i>Loading...</i>';
+            try {
+                const res = await fetch('/api/news');
+                if (!res.ok) {
+                    const text = await res.text();
+                    newsDiv.innerHTML = `<span style="color:red">Error: ${text}</span>`;
+                    return;
+                }
+                const news = await res.json();
+                // Filter news by symbol in ticker_sentiment
+                const filtered = news.filter(item => 
+                    item.ticker_sentiment && 
+                    item.ticker_sentiment.some(t => t.ticker && t.ticker.replace('.NSE','') === symbol)
+                );
+                if (!filtered.length) {
+                    newsDiv.innerHTML = '<i>No news found.</i>';
+                    return;
+                }
+                let html = '<ul>';
+                for (const item of filtered) {
+                    html += `<li><b>${item.title}</b>${item.summary ? '<br>' + item.summary : ''} <a href="${item.url}" target="_blank">Read</a></li>`;
+                }
+                html += '</ul>';
+                newsDiv.innerHTML = html;
+            } catch (e) {
+                newsDiv.innerHTML = `<span style="color:red">Error: ${e}</span>`;
+            }
+        }
+        async function fetchStock() {
+            const stockDiv = document.getElementById('stock');
+            const symbol = document.getElementById('symbol').value || 'AAPL';
+            stockDiv.innerHTML = '<i>Loading...</i>';
+            try {
+                const res = await fetch(`/api/stock?symbol=${encodeURIComponent(symbol)}`);
+                if (!res.ok) {
+                    const text = await res.text();
+                    stockDiv.innerHTML = `<span style="color:red">Error: ${text}</span>`;
+                    return;
+                }
+                const data = await res.json();
+                if (!data.length) {
+                    stockDiv.innerHTML = '<i>No data found.</i>';
+                    return;
+                }
+                let html = `<b>Stock Data for ${symbol}</b><br><table border="1" cellpadding="4"><tr><th>Date</th><th>Open</th><th>High</th><th>Low</th><th>Close</th><th>Volume</th></tr>`;
+                for (const item of data.slice(0, 10)) {
+                    html += `<tr><td>${item.date}</td><td>${item.open}</td><td>${item.high}</td><td>${item.low}</td><td>${item.close}</td><td>${item.volume}</td></tr>`;
+                }
+                html += '</table>';
+                stockDiv.innerHTML = html;
+            } catch (e) {
+                stockDiv.innerHTML = `<span style="color:red">Error: ${e}</span>`;
+            }
+        }
+    </script>
+</body>
+</html>

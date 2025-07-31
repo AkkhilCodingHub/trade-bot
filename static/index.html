@@ -1,56 +1,195 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Trade Bot Web Interface</title>
-    <style>
-        body { font-family: Arial, sans-serif; margin: 2rem; }
-        .section { margin-bottom: 2rem; }
-        button { padding: 0.5rem 1rem; }
-        #output { white-space: pre-wrap; background: #f6f8fa; padding: 1rem; border-radius: 5px; }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Trade Bot Dashboard</title>
+  <link rel="stylesheet" href="/static/dashboard.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
-    <h1>Trade Bot Web Interface</h1>
-    <div class="section">
-        <h2>Run Backtest</h2>
-        <button onclick="runBacktest()">Run</button>
+  <div class="dashboard-root">
+    <aside class="sidebar">
+      <div class="sidebar-header">TradeBot</div>
+      <nav>
+        <ul>
+          <li class="active">Dashboard</li>
+          <li>Orders</li>
+          <li>Holdings</li>
+          <li>Analytics</li>
+        </ul>
+      </nav>
+      <div class="sidebar-footer">User: <span id="user-name">Akkhil</span></div>
+    </aside>
+    <main class="main-panel">
+      <div class="panel-row">
+        <div class="panel-card equity">
+          <div class="panel-title">Equity</div>
+          <div class="panel-value" id="equity-value">₹0</div>
+          <div class="panel-sub">Margin available: <span id="margin-available">-</span></div>
+        </div>
+        <div class="panel-card commodity">
+          <div class="panel-title">Commodity</div>
+          <div class="panel-value" id="commodity-value">₹0</div>
+          <div class="panel-sub">Margin available: <span id="commodity-margin">-</span></div>
+        </div>
+      </div>
+      <div class="panel-row holdings-row">
+        <div class="panel-card holdings">
+          <div class="panel-title">Holdings</div>
+          <div class="holdings-pnl" id="holdings-pnl">--</div>
+          <div class="holdings-bar" id="holdings-bar"></div>
+          <div class="holdings-summary">
+            <span>Current value: <span id="holdings-current">--</span></span>
+            <span>Investment: <span id="holdings-investment">--</span></span>
+          </div>
+        </div>
+        <div class="panel-card graph">
+          <div class="panel-title">Market Overview</div>
+          <canvas id="stock-graph" height="110"></canvas>
+        </div>
+      </div>
+    </main>
+    <aside class="news-panel">
+      <div class="news-header">Market News</div>
+      <div id="news-loading" class="news-loading">Loading...</div>
+      <div id="news-list"></div>
+    </aside>
+  </div>
+  <script src="/static/dashboard.js"></script>
+</body>
+</html>
+
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Trade Bot | Alpha Vantage (Go)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/index.css" />
+</head>
+<body>
+  <div class="container">
+    <h1>Trade Bot <span style="font-size:1.3rem; font-weight:400; color:#888">(Go + Alpha Vantage)</span></h1>
+    <div class="subtitle">Get Indian stock prices and news, powered by Alpha Vantage. Modern UI inspired by Zerodha Support.</div>
+
+    <div class="card">
+      <div class="section-title">Stock Data</div>
+      <form id="stock-form">
+        <select id="stock-symbol">
+          <option value="RELIANCE.NSE">RELIANCE</option>
+          <option value="TCS.NSE">TCS</option>
+          <option value="INFY.NSE">INFY</option>
+          <option value="HDFCBANK.NSE">HDFCBANK</option>
+          <option value="ICICIBANK.NSE">ICICIBANK</option>
+          <option value="SBIN.NSE">SBIN</option>
+          <option value="HINDUNILVR.NSE">HINDUNILVR</option>
+          <option value="BHARTIARTL.NSE">BHARTIARTL</option>
+          <option value="AXISBANK.NSE">AXISBANK</option>
+          <option value="KOTAKBANK.NSE">KOTAKBANK</option>
+        </select>
+        <button type="submit">Fetch</button>
+      </form>
+      <div id="stock-loading" class="loading" style="display:none;">Loading stock data...</div>
+      <div id="stock-error" class="error" style="display:none;"></div>
+      <div id="stock-nodata" class="nodata" style="display:none;">No data found.</div>
+      <table id="stock-table" style="display:none;">
+        <thead>
+          <tr>
+            <th>Date</th><th>Open</th><th>High</th><th>Low</th><th>Close</th><th>Volume</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
     </div>
-    <div class="section">
-        <h2>Fetch News</h2>
-        <button onclick="fetchNews()">Fetch</button>
-        <div id="news"></div>
+
+    <div class="card">
+      <div class="section-title">Market News</div>
+      <button id="news-refresh" style="float:right; margin-top:-8px;">Refresh</button>
+      <div style="clear:both"></div>
+      <div id="news-loading" class="loading" style="display:none;">Loading news...</div>
+      <div id="news-error" class="error" style="display:none;"></div>
+      <div id="news-nodata" class="nodata" style="display:none;">No news found.</div>
+      <ul id="news-list" class="news-list"></ul>
     </div>
-    <div class="section">
-        <h2>KiteConnect Login</h2>
-        <button onclick="getKiteLogin()">Get Login URL</button>
-        <div id="kite-login"></div>
-    </div>
-    <div class="section">
-        <h2>Output</h2>
-        <div id="output"></div>
-    </div>
-    <script>
-        async function runBacktest() {
-            const res = await fetch('/api/backtest');
-            document.getElementById('output').innerText = await res.text();
+  </div>
+  <script>
+    // --- Stock Data Fetch ---
+    const stockForm = document.getElementById('stock-form');
+    const stockSymbol = document.getElementById('stock-symbol');
+    const stockLoading = document.getElementById('stock-loading');
+    const stockError = document.getElementById('stock-error');
+    const stockNodata = document.getElementById('stock-nodata');
+    const stockTable = document.getElementById('stock-table');
+    const stockTbody = stockTable.querySelector('tbody');
+
+    stockForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      stockLoading.style.display = '';
+      stockError.style.display = 'none';
+      stockNodata.style.display = 'none';
+      stockTable.style.display = 'none';
+      try {
+        const res = await fetch(`/api/stock?symbol=${stockSymbol.value}`);
+        if (!res.ok) throw new Error('Failed to fetch stock data');
+        const data = await res.json();
+        if (!data.length) {
+          stockNodata.style.display = '';
+          return;
         }
-        async function fetchNews() {
-            const res = await fetch('/api/news');
-            const news = await res.json();
-            let html = '<ul>';
-            for (const item of news) {
-                html += `<li><b>${item.title}</b></li>`;
-            }
-            html += '</ul>';
-            document.getElementById('news').innerHTML = html;
+        stockTbody.innerHTML = '';
+        data.slice(0, 20).forEach(row => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `<td>${row.date}</td><td>${row.open}</td><td>${row.high}</td><td>${row.low}</td><td>${row.close}</td><td>${row.volume}</td>`;
+          stockTbody.appendChild(tr);
+        });
+        stockTable.style.display = '';
+      } catch (err) {
+        stockError.textContent = err.message;
+        stockError.style.display = '';
+      } finally {
+        stockLoading.style.display = 'none';
+      }
+    });
+
+    // --- News Fetch ---
+    const newsList = document.getElementById('news-list');
+    const newsLoading = document.getElementById('news-loading');
+    const newsError = document.getElementById('news-error');
+    const newsNodata = document.getElementById('news-nodata');
+    const newsRefresh = document.getElementById('news-refresh');
+
+    async function fetchNews() {
+      newsLoading.style.display = '';
+      newsError.style.display = 'none';
+      newsNodata.style.display = 'none';
+      newsList.innerHTML = '';
+      try {
+        const res = await fetch('/api/news');
+        if (!res.ok) throw new Error('Failed to fetch news');
+        const data = await res.json();
+        if (!data.length) {
+          newsNodata.style.display = '';
+          return;
         }
-        async function getKiteLogin() {
-            const res = await fetch('/api/kite-login');
-            const data = await res.json();
-            document.getElementById('kite-login').innerHTML = `<a href="${data.login_url}" target="_blank">Login to Kite</a>`;
-        }
-    </script>
+        data.forEach(item => {
+          const li = document.createElement('li');
+          li.className = 'news-item';
+          li.innerHTML = `<a href="${item.url}" class="news-title" target="_blank">${item.title}</a><div class="news-summary">${item.summary || ''}</div>`;
+          newsList.appendChild(li);
+        });
+      } catch (err) {
+        newsError.textContent = err.message;
+        newsError.style.display = '';
+      } finally {
+        newsLoading.style.display = 'none';
+      }
+    }
+    newsRefresh.addEventListener('click', fetchNews);
+    window.addEventListener('DOMContentLoaded', fetchNews);
+  </script>
 </body>
 </html>

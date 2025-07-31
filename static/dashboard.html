@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Trade Bot Dashboard</title>
+  <link rel="stylesheet" href="dashboard.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <div class="dashboard-root">
+    <aside class="sidebar">
+      <div class="sidebar-header">TradeBot</div>
+      <nav>
+        <ul>
+          <li class="active">Dashboard</li>
+          <li>Orders</li>
+          <li>Holdings</li>
+          <li>Analytics</li>
+        </ul>
+      </nav>
+      <div class="sidebar-footer">User: <span id="user-name">Akkhil</span></div>
+    </aside>
+    <main class="main-panel">
+      <div class="panel-row">
+        <div class="panel-card equity">
+          <div class="panel-title">Equity</div>
+          <div class="panel-value" id="equity-value">₹0</div>
+          <div class="panel-sub">Margin available: <span id="margin-available">-</span></div>
+        </div>
+        <div class="panel-card commodity">
+          <div class="panel-title">Commodity</div>
+          <div class="panel-value" id="commodity-value">₹0</div>
+          <div class="panel-sub">Margin available: <span id="commodity-margin">-</span></div>
+        </div>
+      </div>
+      <div class="panel-row holdings-row">
+        <div class="panel-card holdings">
+          <div class="panel-title">Holdings</div>
+          <div class="holdings-pnl" id="holdings-pnl">--</div>
+          <div class="holdings-bar" id="holdings-bar"></div>
+          <div class="holdings-summary">
+            <span>Current value: <span id="holdings-current">--</span></span>
+            <span>Investment: <span id="holdings-investment">--</span></span>
+          </div>
+        </div>
+        <div class="panel-card graph">
+          <div class="panel-title">Market Overview</div>
+          <canvas id="stock-graph" height="110"></canvas>
+        </div>
+      </div>
+    </main>
+    <aside class="news-panel">
+      <div class="news-header">Market News</div>
+      <div id="news-loading" class="news-loading">Loading...</div>
+      <div id="news-list"></div>
+    </aside>
+  </div>
+  <script src="dashboard.js"></script>
+</body>
+</html>
