@@ -16,8 +16,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start:sync": "browser-sync start --server static --files 'static/*.html,static/*.css,static/*.js'",
-    "dev": "concurrently \"go run main.go\" \"browser-sync start --proxy localhost:8080 --files 'static/*.html,static/*.css,static/*.js' --no-open\""
+    "dev": "concurrently \"~/go/bin/air\" \"browser-sync start --proxy localhost:8080 --files 'static/*.html,static/*.css,static/*.js' --no-open\""
   },
   "devDependencies": {
     "browser-sync": "^3.0.4",

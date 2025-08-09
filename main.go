@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"github.com/joho/godotenv"
+	kiteconnect "github.com/zerodha/gokiteconnect/v4"
 )
 
 type NewsItem struct {
@@ -122,11 +123,55 @@ func parseFloat(v interface{}) float64 {
 	return 0
 }
 
+var kiteClient *kiteconnect.Client
+var kiteAccessToken string
+
+func kiteLoginHandler(w http.ResponseWriter, r *http.Request) {
+	apiKey := getEnv("KITE_API_KEY", "")
+	if apiKey == "" {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("KITE_API_KEY not set"))
+		return
+	}
+	kiteClient = kiteconnect.New(apiKey)
+	loginURL := kiteClient.GetLoginURL()
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]string{"login_url": loginURL})
+}
+
+func kiteCallbackHandler(w http.ResponseWriter, r *http.Request) {
+	apiKey := getEnv("KITE_API_KEY", "")
+	apiSecret := getEnv("KITE_API_SECRET", "")
+	if apiKey == "" || apiSecret == "" {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("KITE_API_KEY or KITE_API_SECRET not set"))
+		return
+	}
+	requestToken := r.URL.Query().Get("request_token")
+	if requestToken == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("Missing request_token"))
+		return
+	}
+	kiteClient = kiteconnect.New(apiKey)
+	data, err := kiteClient.GenerateSession(requestToken, apiSecret)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("Error generating session: " + err.Error()))
+		return
+	}
+	kiteAccessToken = data.AccessToken
+	kiteClient.SetAccessToken(kiteAccessToken)
+	w.Write([]byte("Kite Connect authentication successful! You may close this tab."))
+}
+
 func main() {
 	// Load .env file
 	if err := godotenv.Load(); err != nil {
 		log.Println("No .env file found or failed to load")
 	}
+	log.Println("KITE_API_KEY:", getEnv("KITE_API_KEY", ""))
+	log.Println("KITE_API_SECRET:", getEnv("KITE_API_SECRET", ""))
 
 	// Serve static files from ./static
 	fs := http.FileServer(http.Dir("./static"))
@@ -145,6 +190,8 @@ func main() {
 
 	http.HandleFunc("/api/news", fetchNews)
 	http.HandleFunc("/api/stock", fetchStock)
-	log.Println("Go backend running on http://localhost:8080")
+	http.HandleFunc("/api/kite/login", kiteLoginHandler)
+	http.HandleFunc("/api/kite/callback", kiteCallbackHandler)
+	log.Println("Go backend running on http://localhost:8080 (Kite Connect enabled)")
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
