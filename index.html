@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Folder Backup Selection</title>
+<style>
+body { font-family: Arial; padding: 2rem; }
+button { margin-top: 1rem; padding: 0.5rem 1rem; font-size: 16px; }
+</style>
+</head>
+<body>
+
+<h2>Select Folder to Backup</h2>
+
+<input type="file" id="folderInput" webkitdirectory directory multiple>
+<br>
+<button id="submitBtn">Send to Backup</button>
+
+<p id="status"></p>
+
+<script>
+const folderInput = document.getElementById('folderInput');
+const submitBtn = document.getElementById('submitBtn');
+const status = document.getElementById('status');
+
+submitBtn.addEventListener('click', async () => {
+  const files = folderInput.files;
+  if (!files.length) {
+    status.textContent = "No folder selected!";
+    return;
+  }
+
+  // Get folder name (first folder in file list)
+  const firstPath = files[0].webkitRelativePath;
+  const folderName = firstPath.split('/')[0];
+
+  // Prepare payload
+  const payload = {
+    folderName: folderName,
+    // We cannot send absolute path, so we just send folderName
+    folderPath: folderName 
+  };
+
+  try {
+    const response = await fetch('https://YOUR-N8N-WEBHOOK-URL/select-folder', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    if (response.ok) {
+      status.textContent = "Folder info sent successfully!";
+    } else {
+      status.textContent = "Error sending folder info!";
+    }
+  } catch (err) {
+    status.textContent = "Network error: " + err.message;
+  }
+});
+</script>
+
+</body>
+</html>
